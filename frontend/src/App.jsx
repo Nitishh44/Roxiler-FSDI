@@ -14,6 +14,11 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [isSignup, setIsSignup] = useState(false);
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
+  const [signupMessage, setSignupMessage] = useState("");
+
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem("user") || "null")
   );
@@ -21,7 +26,6 @@ function App() {
   const [stats, setStats] = useState(null);
   const [activePage, setActivePage] = useState("Overview");
 
-  // Change password states
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -72,6 +76,55 @@ function App() {
     } catch (err) {
       setError(
         err.response?.data?.message || "Login failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSignupMessage("");
+
+    if (name.trim().length < 20 || name.trim().length > 60) {
+      setError("Name must be between 20 and 60 characters.");
+      return;
+    }
+
+    if (address.trim().length > 400) {
+      setError("Address cannot exceed 400 characters.");
+      return;
+    }
+
+    if (!/^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,16}$/.test(password)) {
+      setError(
+        "Password must be 8-16 characters with at least one uppercase letter and special character."
+      );
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await API.post("/auth/signup", {
+        name: name.trim(),
+        email: email.trim(),
+        address: address.trim(),
+        password,
+      });
+
+      setSignupMessage(
+        response.data.message || "Account created successfully! Please sign in."
+      );
+
+      setIsSignup(false);
+      setName("");
+      setAddress("");
+      setPassword("");
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Signup failed. Please try again."
       );
     } finally {
       setLoading(false);
@@ -129,8 +182,8 @@ function App() {
 
       setPasswordError(
         err.response?.data?.message ||
-        err.message ||
-        "Failed to change password."
+          err.message ||
+          "Failed to change password."
       );
     } finally {
       setPasswordLoading(false);
@@ -404,12 +457,39 @@ function App() {
         <h1>Roxiler</h1>
         <p className="subtitle">STORE RATING PLATFORM</p>
 
-        <h2>Welcome Back!</h2>
+        <h2>{isSignup ? "Create Account" : "Welcome Back!"}</h2>
+
         <p className="description">
-          Sign in to access your account and manage your workspace.
+          {isSignup
+            ? "Join Roxiler and start rating your favorite stores."
+            : "Sign in to access your account and manage your workspace."}
         </p>
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={isSignup ? handleSignup : handleLogin}>
+          {isSignup && (
+            <>
+              <label>Full Name</label>
+              <input
+                type="text"
+                placeholder="Enter your full name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                minLength={20}
+                maxLength={60}
+                required
+              />
+
+              <label>Address</label>
+              <textarea
+                placeholder="Enter your address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                maxLength={400}
+                required
+              />
+            </>
+          )}
+
           <label>Email Address</label>
           <input
             type="email"
@@ -425,21 +505,54 @@ function App() {
             placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            minLength={8}
+            maxLength={16}
             required
           />
 
-          <label>Login As</label>
-          <select value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="USER">Normal User</option>
-            <option value="STORE_OWNER">Store Owner</option>
-            <option value="ADMIN">System Administrator</option>
-          </select>
+          {!isSignup && (
+            <>
+              <label>Login As</label>
+              <select value={role} onChange={(e) => setRole(e.target.value)}>
+                <option value="USER">Normal User</option>
+                <option value="STORE_OWNER">Store Owner</option>
+                <option value="ADMIN">System Administrator</option>
+              </select>
+            </>
+          )}
 
           {error && <p className="error-message">{error}</p>}
 
+          {signupMessage && (
+            <p className="success-message">{signupMessage}</p>
+          )}
+
           <button type="submit" disabled={loading}>
-            {loading ? "Signing In..." : "Sign In →"}
+            {loading
+              ? isSignup
+                ? "Creating Account..."
+                : "Signing In..."
+              : isSignup
+                ? "Create Account →"
+                : "Sign In →"}
           </button>
+
+          <p className="auth-switch">
+            {isSignup
+              ? "Already have an account?"
+              : "New to Roxiler?"}{" "}
+            <button
+              type="button"
+              className="text-button"
+              onClick={() => {
+                setIsSignup(!isSignup);
+                setError("");
+                setSignupMessage("");
+              }}
+            >
+              {isSignup ? "Sign In" : "Create Account"}
+            </button>
+          </p>
         </form>
 
         <p className="footer">

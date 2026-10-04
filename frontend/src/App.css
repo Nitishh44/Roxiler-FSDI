@@ -811,3 +811,184 @@ button:focus-visible {
     min-width: 600px;
   }
 }
+
+/* ===== ROXILER AUTH UI POLISH ===== */
+
+.login-card {
+  width: min(100% - 32px, 480px);
+  margin: 32px auto;
+  padding: 42px 38px;
+  background: #ffffff;
+  border: 1px solid #edf0f7;
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(42, 48, 90, 0.10);
+}
+
+.login-card h1 {
+  margin: 12px 0 4px;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #20213a;
+}
+
+.login-card .subtitle {
+  margin-bottom: 32px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #777b94;
+}
+
+.login-card h2 {
+  margin-bottom: 8px;
+  font-size: 25px;
+  font-weight: 750;
+  color: #20213a;
+}
+
+.login-card .description {
+  margin-bottom: 26px;
+  color: #858ba1;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-card form label {
+  margin-top: 8px;
+  color: #34364e;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.login-card form input,
+.login-card form select,
+.login-card form textarea {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 1px solid #e3e7f1;
+  border-radius: 12px;
+  background: #fafbfe;
+  color: #25263d;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  box-sizing: border-box;
+}
+
+.login-card form textarea {
+  min-height: 90px;
+  padding: 14px 16px;
+  resize: vertical;
+}
+
+.login-card form input:focus,
+.login-card form select:focus,
+.login-card form textarea:focus {
+  background: #ffffff;
+  border-color: #6555e8;
+  box-shadow: 0 0 0 4px rgba(101, 85, 232, 0.10);
+}
+
+.login-card form input::placeholder,
+.login-card form textarea::placeholder {
+  color: #a2a8bb;
+}
+
+.login-card form > button[type="submit"] {
+  width: 100%;
+  min-height: 54px;
+  margin-top: 14px;
+  padding: 14px 20px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6555ed, #4935d5);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(83, 65, 218, 0.20);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.login-card form > button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(83, 65, 218, 0.27);
+}
+
+.login-card form > button[type="submit"]:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-switch {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 14px 0 0;
+  color: #747b91;
+  font-size: 13px;
+  text-align: center;
+}
+
+.login-card .text-button {
+  display: inline;
+  width: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #5848df;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.login-card .text-button:hover {
+  color: #3525b8;
+  text-decoration: underline;
+  transform: none;
+}
+
+.login-card .footer {
+  margin-top: 28px;
+  color: #9aa0b2;
+  font-size: 12px;
+  text-align: center;
+}
+
+.login-card .error-message {
+  color: #dc3545;
+  font-size: 13px;
+}
+
+.login-card .success-message {
+  color: #16834a;
+  font-size: 13px;
+}
+
+@media (max-width: 520px) {
+  .login-card {
+    width: calc(100% - 24px);
+    margin: 12px auto;
+    padding: 30px 22px;
+    border-radius: 20px;
+  }
+
+  .login-card h2 {
+    font-size: 22px;
+  }
+}
