@@ -21,12 +21,18 @@ function App() {
   const [stats, setStats] = useState(null);
   const [activePage, setActivePage] = useState("Overview");
 
+  // Change password states
   const [currentPassword, setCurrentPassword] = useState("");
-const [newPassword, setNewPassword] = useState("");
-const [confirmPassword, setConfirmPassword] = useState("");
-const [passwordMessage, setPasswordMessage] = useState("");
-const [passwordError, setPasswordError] = useState("");
-const [passwordLoading, setPasswordLoading] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const [passwordMessage, setPasswordMessage] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   const roleLabel = {
     ADMIN: "System Administrator",
@@ -83,46 +89,53 @@ const [passwordLoading, setPasswordLoading] = useState(false);
   };
 
   const handleChangePassword = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  setPasswordMessage("");
-  setPasswordError("");
+    setPasswordMessage("");
+    setPasswordError("");
 
-  if (newPassword !== confirmPassword) {
-    setPasswordError("New password and confirm password do not match.");
-    return;
-  }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New password and confirm password do not match.");
+      return;
+    }
 
-  if (!/^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,16}$/.test(newPassword)) {
-    setPasswordError(
-      "Password must be 8-16 characters with at least one uppercase letter and special character."
-    );
-    return;
-  }
+    if (!/^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,16}$/.test(newPassword)) {
+      setPasswordError(
+        "Password must be 8-16 characters with at least one uppercase letter and special character."
+      );
+      return;
+    }
 
-  setPasswordLoading(true);
+    setPasswordLoading(true);
 
-  try {
-    const response = await API.put("/auth/change-password", {
-      currentPassword,
-      newPassword,
-    });
+    try {
+      const response = await API.put("/auth/change-password", {
+        currentPassword,
+        newPassword,
+      });
 
-    setPasswordMessage(
-      response.data.message || "Password changed successfully!"
-    );
+      setPasswordMessage(
+        response.data.message || "Password changed successfully!"
+      );
 
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-  } catch (err) {
-    setPasswordError(
-      err.response?.data?.message || "Failed to change password."
-    );
-  } finally {
-    setPasswordLoading(false);
-  }
-};
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      console.error(
+        "CHANGE PASSWORD ERROR:",
+        err.response?.data || err
+      );
+
+      setPasswordError(
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to change password."
+      );
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
 
   if (user) {
     return (
@@ -145,13 +158,6 @@ const [passwordLoading, setPasswordLoading] = useState(false);
             <span>▦</span> Overview
           </button>
 
-          <button
-  className={`nav-item ${activePage === "Change Password" ? "active" : ""}`}
-  onClick={() => setActivePage("Change Password")}
->
-  <span>⚙</span> Change Password
-</button>
-
           {user.role === "ADMIN" && (
             <>
               <button
@@ -169,6 +175,15 @@ const [passwordLoading, setPasswordLoading] = useState(false);
               </button>
             </>
           )}
+
+          <button
+            className={`nav-item ${
+              activePage === "Change Password" ? "active" : ""
+            }`}
+            onClick={() => setActivePage("Change Password")}
+          >
+            <span>⚙</span> Change Password
+          </button>
 
           <div className="sidebar-bottom">
             <div className="sidebar-user">
@@ -294,56 +309,88 @@ const [passwordLoading, setPasswordLoading] = useState(false);
             {user.role === "STORE_OWNER" && activePage === "Overview" && (
               <OwnerDashboard />
             )}
-             
-             {activePage === "Change Password" && (
-  <div className="content-panel">
-    <div className="panel-heading">
-      <div>
-        <h3>Change Password</h3>
-        <p>Update your account password securely.</p>
-      </div>
-    </div>
 
-    <form onSubmit={handleChangePassword} className="password-form">
-      <label>Current Password</label>
-      <input
-        type="password"
-        value={currentPassword}
-        onChange={(e) => setCurrentPassword(e.target.value)}
-        required
-      />
+            {activePage === "Change Password" && (
+              <div className="content-panel">
+                <div className="panel-heading">
+                  <div>
+                    <h3>Change Password</h3>
+                    <p>Update your account password securely.</p>
+                  </div>
+                </div>
 
-      <label>New Password</label>
-      <input
-        type="password"
-        value={newPassword}
-        onChange={(e) => setNewPassword(e.target.value)}
-        required
-      />
+                <form
+                  onSubmit={handleChangePassword}
+                  className="password-form"
+                >
+                  <label>Current Password</label>
+                  <div className="password-input-wrapper">
+                    <input
+                      type={showCurrent ? "text" : "password"}
+                      placeholder="Enter current password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowCurrent(!showCurrent)}
+                    >
+                      {showCurrent ? "🙈 Hide" : "👁 Show"}
+                    </button>
+                  </div>
 
-      <label>Confirm New Password</label>
-      <input
-        type="password"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-        required
-      />
+                  <label>New Password</label>
+                  <div className="password-input-wrapper">
+                    <input
+                      type={showNew ? "text" : "password"}
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowNew(!showNew)}
+                    >
+                      {showNew ? "🙈 Hide" : "👁 Show"}
+                    </button>
+                  </div>
 
-      {passwordError && (
-        <p className="error-message">{passwordError}</p>
-      )}
+                  <label>Confirm New Password</label>
+                  <div className="password-input-wrapper">
+                    <input
+                      type={showConfirm ? "text" : "password"}
+                      placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowConfirm(!showConfirm)}
+                    >
+                      {showConfirm ? "🙈 Hide" : "👁 Show"}
+                    </button>
+                  </div>
 
-      {passwordMessage && (
-        <p style={{ color: "green" }}>{passwordMessage}</p>
-      )}
+                  {passwordError && (
+                    <p className="error-message">{passwordError}</p>
+                  )}
 
-      <button type="submit" disabled={passwordLoading}>
-        {passwordLoading ? "Updating..." : "Update Password"}
-      </button>
-    </form>
-  </div>
-)}
+                  {passwordMessage && (
+                    <p style={{ color: "green" }}>{passwordMessage}</p>
+                  )}
 
+                  <button type="submit" disabled={passwordLoading}>
+                    {passwordLoading ? "Updating..." : "Update Password"}
+                  </button>
+                </form>
+              </div>
+            )}
           </section>
         </main>
       </div>
@@ -404,4 +451,3 @@ const [passwordLoading, setPasswordLoading] = useState(false);
 }
 
 export default App;
-

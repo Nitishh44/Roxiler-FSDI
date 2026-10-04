@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const bcrypt = require("bcryptjs");
 
 // Get all users (Admin)
 const getAllUsers = async (req, res) => {
@@ -20,6 +21,95 @@ const getAllUsers = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Failed to fetch users"
+        });
+    }
+};
+
+// Create User (Admin)
+const createUser = async (req, res) => {
+    try {
+        const { name, email, address, password, role } = req.body;
+
+        if (!name || !email || !address || !password || !role) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required"
+            });
+        }
+
+        if (name.trim().length < 20 || name.trim().length > 60) {
+            return res.status(400).json({
+                success: false,
+                message: "Name must be between 20 and 60 characters"
+            });
+        }
+
+        if (address.trim().length > 400) {
+            return res.status(400).json({
+                success: false,
+                message: "Address must not exceed 400 characters"
+            });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid email address"
+            });
+        }
+
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,16}$/;
+
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be 8-16 characters with at least one uppercase letter and one special character"
+            });
+        }
+
+        const allowedRoles = ["ADMIN", "USER", "STORE_OWNER"];
+
+        if (!allowedRoles.includes(role)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid role"
+            });
+        }
+
+        const [existingUser] = await pool.query(
+            "SELECT id FROM users WHERE email = ?",
+            [email]
+        );
+
+        if (existingUser.length > 0) {
+            return res.status(409).json({
+                success: false,
+                message: "Email already registered"
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const [result] = await pool.query(
+            `INSERT INTO users (name, email, address, password, role)
+             VALUES (?, ?, ?, ?, ?)`,
+            [name.trim(), email.trim().toLowerCase(), address.trim(), hashedPassword, role]
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "User created successfully",
+            userId: result.insertId
+        });
+
+    } catch (error) {
+        console.error("CREATE USER ERROR:", error.message);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to create user"
         });
     }
 };
@@ -63,4 +153,8 @@ const getDashboardStats = async (req, res) => {
     }
 };
 
-module.exports = { getAllUsers, getDashboardStats };
+module.exports = {
+    getAllUsers,
+    createUser,
+    getDashboardStats
+};

@@ -1,3 +1,4 @@
+
 const pool = require("../config/db");
 
 // Create Store (Admin)
@@ -12,17 +13,42 @@ const createStore = async (req, res) => {
             });
         }
 
-        if (name.length < 20 || name.length > 60) {
+        const cleanName = name.trim();
+        const cleanEmail = email.trim().toLowerCase();
+        const cleanAddress = address.trim();
+
+        if (cleanName.length < 20 || cleanName.length > 60) {
             return res.status(400).json({
                 success: false,
                 message: "Store name must be 20-60 characters"
             });
         }
 
-        if (address.length > 400) {
+        if (cleanAddress.length > 400) {
             return res.status(400).json({
                 success: false,
                 message: "Address cannot exceed 400 characters"
+            });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(cleanEmail)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid email address"
+            });
+        }
+
+        const [existingStore] = await pool.query(
+            "SELECT id FROM stores WHERE email = ?",
+            [cleanEmail]
+        );
+
+        if (existingStore.length > 0) {
+            return res.status(409).json({
+                success: false,
+                message: "Store email already registered"
             });
         }
 
@@ -41,7 +67,7 @@ const createStore = async (req, res) => {
         const [result] = await pool.query(
             `INSERT INTO stores (name, email, address, owner_id)
              VALUES (?, ?, ?, ?)`,
-            [name, email, address, owner_id]
+            [cleanName, cleanEmail, cleanAddress, owner_id]
         );
 
         res.status(201).json({
@@ -60,6 +86,7 @@ const createStore = async (req, res) => {
     }
 };
 
+
 // Get All Stores (Admin)
 const getAllStores = async (req, res) => {
     try {
@@ -72,9 +99,15 @@ const getAllStores = async (req, res) => {
                 s.owner_id,
                 u.name AS owner_name,
                 u.email AS owner_email,
+                COALESCE(ROUND(AVG(r.rating), 2), 0) AS average_rating,
+                COUNT(r.id) AS total_ratings,
                 s.created_at
              FROM stores s
              JOIN users u ON s.owner_id = u.id
+             LEFT JOIN ratings r ON s.id = r.store_id
+             GROUP BY
+                s.id, s.name, s.email, s.address,
+                s.owner_id, u.name, u.email, s.created_at
              ORDER BY s.id DESC`
         );
 
@@ -93,6 +126,7 @@ const getAllStores = async (req, res) => {
         });
     }
 };
+
 
 // Get Stores for Normal User
 const getUserStores = async (req, res) => {
@@ -136,7 +170,6 @@ const getUserStores = async (req, res) => {
 
 
 // Store Owner Dashboard
-
 const getOwnerDashboard = async (req, res) => {
     try {
         const ownerId = req.user.id;
@@ -196,9 +229,11 @@ const getOwnerDashboard = async (req, res) => {
     }
 };
 
+
 module.exports = {
     createStore,
     getAllStores,
     getOwnerDashboard,
     getUserStores
 };
+

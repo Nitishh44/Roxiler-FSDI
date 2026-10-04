@@ -227,3 +227,106 @@
     grid-column: 1;
   }
 }
+/* Premium Stores & Users UI */
+
+.stores-container,
+.users-container {
+  background: #f4f7fc;
+  min-height: 100vh;
+  padding: 28px;
+  color: #172033;
+}
+
+.stores-container h2,
+.users-container h2 {
+  font-size: 26px;
+  font-weight: 750;
+  letter-spacing: -0.5px;
+  margin-bottom: 22px;
+}
+
+.stores-container table,
+.users-container table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.stores-container thead,
+.users-container thead {
+  background: #f8faff;
+}
+
+.stores-container th,
+.users-container th {
+  padding: 15px 16px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-align: left;
+}
+
+.stores-container td,
+.users-container td {
+  padding: 15px 16px;
+  border-top: 1px solid #edf0f5;
+  font-size: 14px;
+  color: #334155;
+}
+
+.stores-container tbody tr:hover,
+.users-container tbody tr:hover {
+  background: #f8faff;
+}
+
+.stores-container input,
+.stores-container select,
+.users-container input,
+.users-container select {
+  border: 1px solid #dce3ee;
+  border-radius: 10px;
+  padding: 11px 14px;
+  outline: none;
+  background: #fff;
+}
+
+.stores-container input:focus,
+.stores-container select:focus,
+.users-container input:focus,
+.users-container select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.stores-container button,
+.users-container button {
+  border: none;
+  border-radius: 9px;
+  padding: 11px 18px;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.stores-container button:hover,
+.users-container button:hover {
+  background: #1d4ed8;
+}
+
+@media (max-width: 768px) {
+  .stores-container,
+  .users-container {
+    padding: 16px;
+    overflow-x: auto;
+  }
+
+  .stores-container table,
+  .users-container table {
+    min-width: 650px;
+  }
+}

@@ -57,10 +57,15 @@ app.get(
 );
 
 // Authentication Routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", (req, res, next) => {
+    console.log("AUTH ROUTER HIT:", req.method, req.originalUrl);
+    next();
+}, authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/stores", storeRoutes);
 const ratingRoutes = require("./routes/rating.routes");
 app.use("/api/ratings", ratingRoutes);
+
+console.log("APP EXPORTING SUCCESSFULLY");
 
 module.exports = app;

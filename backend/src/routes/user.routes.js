@@ -1,5 +1,9 @@
 const express = require("express");
-const { getAllUsers, getDashboardStats } = require("../controllers/user.controller");
+const {
+    getAllUsers,
+    getDashboardStats,
+    createUser
+} = require("../controllers/user.controller");
 
 const verifyToken = require("../middleware/auth.middleware");
 const authorizeRoles = require("../middleware/role.middleware");
@@ -20,6 +24,14 @@ router.get(
     verifyToken,
     authorizeRoles("ADMIN"),
     getDashboardStats
+);
+
+// Admin: Create a new user
+router.post(
+    "/",
+    verifyToken,
+    authorizeRoles("ADMIN"),
+    createUser
 );
 
 module.exports = router;

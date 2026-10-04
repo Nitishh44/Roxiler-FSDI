@@ -9,18 +9,26 @@
   align-items: center;
   justify-content: space-between;
   gap: 15px;
-  margin-bottom: 25px;
+  margin-bottom: 24px;
 }
 
 .users-header h1 {
-  font-size: 21px;
+  font-size: 24px;
+  font-weight: 700;
   color: #202a40;
-  margin-bottom: 7px;
+  margin: 0 0 6px;
 }
 
 .users-header p {
   color: #929bad;
-  font-size: 12px;
+  font-size: 13px;
+  margin: 0;
+}
+
+.users-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .users-count {
@@ -28,30 +36,144 @@
   background: #efedff;
   color: #574be0;
   border-radius: 9px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.add-user-btn,
+.save-user-btn {
+  border: none;
+  background: #6258ec;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.add-user-btn:hover,
+.save-user-btn:hover {
+  background: #4e43d2;
+}
+
+.save-user-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.add-user-card {
+  background: #fff;
+  border: 1px solid #edf0f5;
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 22px;
+  box-shadow: 0 5px 20px rgba(38, 49, 82, 0.04);
+}
+
+.add-user-card h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #202a40;
+  margin: 0 0 22px;
+}
+
+.add-user-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.form-field label {
+  color: #374158;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #e5e8f0;
+  border-radius: 9px;
+  background: #fff;
+  color: #374158;
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+}
+
+.form-field textarea {
+  min-height: 85px;
+  resize: vertical;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: #6258ec;
+  box-shadow: 0 0 0 3px #6258ec15;
+}
+
+.save-user-btn {
+  align-self: end;
+  min-height: 42px;
+}
+
+.user-success,
+.user-error {
+  padding: 13px 16px;
+  border-radius: 9px;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.user-success {
+  background: #eaf9f0;
+  color: #24965b;
+}
+
+.user-error {
+  background: #fff0f0;
+  color: #d33b3b;
 }
 
 .users-toolbar {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .users-toolbar input,
 .users-toolbar select {
-  padding: 13px 15px;
+  padding: 12px 15px;
   border: 1px solid #e5e8f0;
   border-radius: 9px;
   background: #fff;
   color: #374158;
-  font-size: 12px;
+  font-size: 13px;
   outline: none;
+  font-family: inherit;
 }
 
 .users-toolbar input {
   flex: 1;
   min-width: 0;
+}
+
+.users-toolbar select {
+  min-width: 150px;
 }
 
 .users-toolbar input:focus,
@@ -72,14 +194,14 @@
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  white-space: nowrap;
+  min-width: 650px;
 }
 
 .users-table th {
-  padding: 17px 20px;
+  padding: 16px 20px;
   background: #fafbfe;
   color: #8c95a8;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
@@ -87,9 +209,9 @@
 }
 
 .users-table td {
-  padding: 17px 20px;
+  padding: 16px 20px;
   color: #657087;
-  font-size: 12px;
+  font-size: 13px;
   border-bottom: 1px solid #f0f2f7;
 }
 
@@ -110,7 +232,7 @@
   display: inline-block;
   padding: 6px 10px;
   border-radius: 20px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   background: #f0edff;
   color: #6256dd;
@@ -137,10 +259,14 @@
   color: #929bad !important;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
   .users-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .users-header-actions {
+    flex-wrap: wrap;
   }
 
   .users-toolbar {
@@ -149,5 +275,13 @@
 
   .users-toolbar select {
     width: 100%;
+  }
+
+  .add-user-form {
+    grid-template-columns: 1fr;
+  }
+
+  .add-user-card {
+    padding: 16px;
   }
 }
