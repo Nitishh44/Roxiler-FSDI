@@ -175,6 +175,120 @@
   margin-bottom: 15px;
 }
 
+.user-rating-message.error {
+  color: #a83c3c;
+  background: #fff0ef;
+}
+
+.empty-stores-state {
+  grid-column: 1 / -1;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 46px 22px;
+  border: 1px dashed #dfe7df;
+  border-radius: 15px;
+  color: #738074;
+  background: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
+
+.user-loading-state {
+  padding: 18px 0;
+  color: #748174;
+}
+
+.empty-stores-state > span {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+  border-radius: 12px;
+  color: #477653;
+  background: #edf5ef;
+  font-size: 22px;
+}
+
+.empty-stores-state strong {
+  color: #334338;
+  font-size: 14px;
+}
+
+.empty-stores-state p {
+  color: #8a9489;
+  font-size: 12px;
+}
+
+.user-store-search {
+  min-height: 46px;
+  border-color: #e4eae3;
+  box-shadow: 0 3px 12px rgba(31, 52, 37, 0.035);
+}
+
+.user-store-search:focus {
+  border-color: #4f8560;
+  box-shadow: 0 0 0 3px rgba(47, 104, 75, 0.1);
+}
+
+.user-store-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  border-color: #e8ede8;
+  box-shadow: 0 10px 28px rgba(31, 52, 37, 0.05);
+}
+
+.user-store-icon {
+  color: #39744b;
+  background: #edf5ef;
+}
+
+.user-store-card h3 {
+  font-size: 16px;
+  letter-spacing: -0.3px;
+}
+
+.rating-section {
+  margin-top: auto;
+  border-top-color: #e9eee8;
+}
+
+.rating-star {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  font-size: 23px;
+}
+
+.rating-star:hover {
+  color: #e6a21b;
+  background: #fff8e8;
+  transform: translateY(-1px);
+}
+
+.rating-star:focus-visible {
+  outline: 3px solid rgba(47, 104, 75, 0.24);
+  outline-offset: 2px;
+}
+
+.submit-rating-button {
+  min-height: 41px;
+  background: linear-gradient(135deg, #43815a, #2f684b);
+  box-shadow: 0 6px 15px rgba(47, 104, 75, 0.14);
+}
+
+.submit-rating-button:hover {
+  background: #24543b;
+}
+
+.submit-rating-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
 @media (max-width: 600px) {
   .user-stores-header {
     align-items: flex-start;

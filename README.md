@@ -7,9 +7,8 @@ A full-stack store rating application with role-based access for System Administ
 ### System Administrator
 
 * Dashboard with total users, stores, and ratings.
-* Add and manage users and stores.
-* View user roles and store ratings.
-* Search and filter records.
+* Create users and stores, and review user roles and store ratings.
+* Search, filter, sort listings, and view user details.
 
 ### Normal User
 
@@ -39,7 +38,12 @@ A full-stack store rating application with role-based access for System Administ
 ```text
 Roxiler-FSDI/
 ├── backend/
+│   ├── database/
+│   │   └── schema.sql
 │   ├── src/
+│   │   └── scripts/
+│   │       └── create-admin.js
+│   ├── test/
 │   ├── package.json
 │   └── .env
 ├── frontend/
@@ -76,7 +80,21 @@ DB_PORT=3306
 JWT_SECRET=your_secure_secret
 ```
 
-Create the `roxiler_db` database in MySQL and configure the required tables.
+Create the database and all required tables from the provided schema:
+
+```bash
+mysql -u root -p < database/schema.sql
+```
+
+In Windows PowerShell, use:
+
+```powershell
+cmd /c "mysql -u root -p < database\schema.sql"
+```
+
+The schema uses InnoDB foreign keys, unique email addresses, one rating per
+user/store pair, and database-level checks for name, address, and rating
+limits. Use MySQL 8.0.16 or newer so CHECK constraints are enforced.
 
 Start backend:
 
@@ -85,6 +103,28 @@ npm run dev
 ```
 
 Backend runs at `http://localhost:5000`.
+
+### 2a. Create the first administrator
+
+Normal users can self-register, but administrator accounts must be created
+from a trusted environment. Add these variables to the backend `.env` file
+(do not commit the password), then run the bootstrap script from `backend/`:
+
+```env
+ADMIN_NAME=Platform Administrator Account
+ADMIN_EMAIL=admin@example.com
+ADMIN_ADDRESS=Platform operations
+ADMIN_PASSWORD=REPLACE_WITH_A_UNIQUE_PASSWORD
+```
+
+Replace the example email and password with values for your own local setup.
+
+```bash
+npm run seed:admin
+```
+
+The script validates the assessment password/name rules and stores only a
+bcrypt hash. It will not overwrite an existing account.
 
 ### 3. Frontend setup
 
@@ -98,6 +138,9 @@ npm run dev
 
 Open the local URL shown by Vite.
 
+For deployments where the API is not at `http://localhost:5000/api`, set
+`VITE_API_BASE_URL` to the deployed API's `/api` URL before building.
+
 ## Production Build
 
 ```bash
@@ -105,12 +148,37 @@ cd frontend
 npm run build
 ```
 
+## Checks
+
+Run the frontend lint and unit tests from `frontend/`:
+
+```bash
+npm run lint
+npm test
+```
+
+Run backend tests from `backend/`:
+
+```bash
+npm test
+```
+
 ## Validation
 
-* Name: 20–60 characters
+* User and store name: 20–60 characters
 * Address: Maximum 400 characters
 * Password: 8–16 characters, including an uppercase letter and special character
 * Email: Valid email format
+* Store rating: Integer from 1 to 5; each user may keep one rating per store and update it later
+
+## Assessment roles
+
+* **System Administrator:** Manage users and stores, review platform totals, and inspect user/store details.
+* **Normal User:** Create an account, find stores, and submit or update ratings.
+* **Store Owner:** Review the average rating and customer ratings for owned stores.
+
+All roles use the same sign-in page; access to protected actions is enforced by
+the API according to the authenticated user's role.
 
 ## Repository
 

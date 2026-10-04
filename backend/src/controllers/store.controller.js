@@ -6,7 +6,17 @@ const createStore = async (req, res) => {
     try {
         const { name, email, address, owner_id } = req.body;
 
-        if (!name || !email || !address || !owner_id) {
+        if (
+            typeof name !== "string" ||
+            typeof email !== "string" ||
+            typeof address !== "string" ||
+            !name.trim() ||
+            !email.trim() ||
+            !address.trim() ||
+            owner_id === undefined ||
+            owner_id === null ||
+            owner_id === ""
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required"
@@ -16,6 +26,14 @@ const createStore = async (req, res) => {
         const cleanName = name.trim();
         const cleanEmail = email.trim().toLowerCase();
         const cleanAddress = address.trim();
+        const ownerId = Number(owner_id);
+
+        if (!Number.isSafeInteger(ownerId) || ownerId < 1) {
+            return res.status(400).json({
+                success: false,
+                message: "A valid store owner is required"
+            });
+        }
 
         if (cleanName.length < 20 || cleanName.length > 60) {
             return res.status(400).json({
@@ -54,7 +72,7 @@ const createStore = async (req, res) => {
 
         const [owners] = await pool.query(
             "SELECT id, role FROM users WHERE id = ?",
-            [owner_id]
+            [ownerId]
         );
 
         if (owners.length === 0 || owners[0].role !== "STORE_OWNER") {
@@ -67,7 +85,7 @@ const createStore = async (req, res) => {
         const [result] = await pool.query(
             `INSERT INTO stores (name, email, address, owner_id)
              VALUES (?, ?, ?, ?)`,
-            [cleanName, cleanEmail, cleanAddress, owner_id]
+            [cleanName, cleanEmail, cleanAddress, ownerId]
         );
 
         res.status(201).json({
@@ -190,13 +208,6 @@ const getOwnerDashboard = async (req, res) => {
             [ownerId]
         );
 
-        if (stores.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "No store found for this owner"
-            });
-        }
-
         const [raters] = await pool.query(
             `SELECT
                 s.id AS storeId,
@@ -236,4 +247,3 @@ module.exports = {
     getOwnerDashboard,
     getUserStores
 };
-

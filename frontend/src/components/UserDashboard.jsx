@@ -9,15 +9,15 @@ function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const [ratings, setRatings] = useState({});
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("success");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(null);
 
   const fetchStores = async () => {
     try {
-      setError("");
-
       const response = await API.get("/stores/user");
 
+      setError("");
       setStores(response.data.stores || []);
     } catch (err) {
       console.error("Failed to fetch stores:", err);
@@ -30,13 +30,38 @@ function UserDashboard() {
   };
 
   useEffect(() => {
-    fetchStores();
+    let active = true;
+
+    API.get("/stores/user")
+      .then((response) => {
+        if (active) {
+          setStores(response.data.stores || []);
+          setError("");
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setError(
+            err.response?.data?.message || "Failed to load stores."
+          );
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const submitRating = async (storeId) => {
     const rating = Number(ratings[storeId]);
 
     if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+      setMessageType("error");
       setMessage("Please select a rating from 1 to 5.");
       return;
     }
@@ -44,6 +69,7 @@ function UserDashboard() {
     try {
       setSubmitting(storeId);
       setMessage("");
+      setMessageType("success");
 
       const response = await API.post("/ratings", {
         store_id: storeId,
@@ -53,6 +79,7 @@ function UserDashboard() {
       setMessage(
         response.data.message || "Rating submitted successfully!"
       );
+      setMessageType("success");
 
       await fetchStores();
 
@@ -62,6 +89,7 @@ function UserDashboard() {
         return updated;
       });
     } catch (err) {
+      setMessageType("error");
       setMessage(
         err.response?.data?.message || "Failed to submit rating."
       );
@@ -91,21 +119,23 @@ function UserDashboard() {
 
       <input
         className="user-store-search"
+        type="search"
+        aria-label="Search stores by name or address"
         placeholder="Search by store name or address..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
 
       {message && (
-        <p className="user-rating-message">{message}</p>
+        <p className={`user-rating-message ${messageType}`} role={messageType === "error" ? "alert" : "status"}>{message}</p>
       )}
 
       {error && (
-        <p className="user-rating-message">{error}</p>
+        <p className="user-rating-message error" role="alert">{error}</p>
       )}
 
       {loading ? (
-        <p>Loading stores...</p>
+        <p className="user-loading-state" role="status">Loading stores...</p>
       ) : (
         <div className="user-store-grid">
           {filteredStores.map((store) => {
@@ -132,7 +162,11 @@ function UserDashboard() {
                 <div className="rating-section">
                   <label>Your Rating</label>
 
-                  <div className="rating-options">
+                  <div
+                    className="rating-options"
+                    role="group"
+                    aria-label={`Choose your rating for ${store.name}`}
+                  >
                     {[1, 2, 3, 4, 5].map((number) => (
                       <button
                         type="button"
@@ -148,6 +182,8 @@ function UserDashboard() {
                             [store.id]: number,
                           }))
                         }
+                        aria-label={`Rate ${store.name} ${number} out of 5`}
+                        aria-pressed={Number(ratings[store.id] ?? myRating) === number}
                       >
                         ★
                       </button>
@@ -155,7 +191,8 @@ function UserDashboard() {
                   </div>
 
                   <button
-                    className="submit-rating-button"
+                  type="button"
+                  className="submit-rating-button"
                     disabled={submitting === store.id}
                     onClick={() => submitRating(store.id)}
                   >
@@ -171,7 +208,11 @@ function UserDashboard() {
           })}
 
           {filteredStores.length === 0 && (
-            <p>No stores found.</p>
+            <div className="empty-stores-state">
+              <span aria-hidden="true">⌕</span>
+              <strong>{search ? "No matching stores" : "No stores available yet"}</strong>
+              <p>{search ? "Try another store name or address." : "Stores will appear here once an administrator adds them."}</p>
+            </div>
           )}
         </div>
       )}
@@ -180,4 +221,3 @@ function UserDashboard() {
 }
 
 export default UserDashboard;
-

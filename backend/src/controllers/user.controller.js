@@ -25,12 +25,71 @@ const getAllUsers = async (req, res) => {
     }
 };
 
+const getUserDetails = async (req, res) => {
+    try {
+        const [users] = await pool.query(
+            `SELECT id, name, email, address, role, created_at
+             FROM users
+             WHERE id = ?`,
+            [req.params.id]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const user = users[0];
+        let stores = [];
+
+        if (user.role === "STORE_OWNER") {
+            [stores] = await pool.query(
+                `SELECT
+                    s.id,
+                    s.name,
+                    COALESCE(ROUND(AVG(r.rating), 2), 0) AS average_rating,
+                    COUNT(r.id) AS total_ratings
+                 FROM stores s
+                 LEFT JOIN ratings r ON r.store_id = s.id
+                 WHERE s.owner_id = ?
+                 GROUP BY s.id, s.name
+                 ORDER BY s.name ASC`,
+                [user.id]
+            );
+        }
+
+        res.status(200).json({
+            success: true,
+            user,
+            stores
+        });
+    } catch (error) {
+        console.error("GET USER DETAILS ERROR:", error.message);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch user details"
+        });
+    }
+};
+
 // Create User (Admin)
 const createUser = async (req, res) => {
     try {
         const { name, email, address, password, role } = req.body;
 
-        if (!name || !email || !address || !password || !role) {
+        if (
+            typeof name !== "string" ||
+            typeof email !== "string" ||
+            typeof address !== "string" ||
+            typeof password !== "string" ||
+            typeof role !== "string" ||
+            !name.trim() ||
+            !email.trim() ||
+            !password
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required"
@@ -155,6 +214,7 @@ const getDashboardStats = async (req, res) => {
 
 module.exports = {
     getAllUsers,
+    getUserDetails,
     createUser,
     getDashboardStats
 };

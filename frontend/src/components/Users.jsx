@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
+import { sortRows } from "../utils/sortRows";
 import "./Users.css";
 
 function Users() {
@@ -12,6 +13,10 @@ function Users() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [sort, setSort] = useState({ key: "name", direction: "asc" });
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -24,16 +29,42 @@ function Users() {
   const fetchUsers = async () => {
     try {
       const response = await API.get("/users");
+      setError("");
       setUsers(response.data.users || response.data);
     } catch (error) {
-      console.error("Failed to fetch users:", error);
+      setError(
+        error.response?.data?.message || "Failed to load users."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    let active = true;
+
+    API.get("/users")
+      .then((response) => {
+        if (active) {
+          setUsers(response.data.users || response.data);
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          setError(
+            error.response?.data?.message || "Failed to load users."
+          );
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleChange = (e) => {
@@ -84,6 +115,35 @@ function Users() {
 
     return matchesSearch && matchesRole;
   });
+  const sortedUsers = sortRows(filteredUsers, sort.key, sort.direction);
+
+  const handleSort = (key) => {
+    setSort((current) => ({
+      key,
+      direction:
+        current.key === key && current.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  const openUserDetails = async (userId) => {
+    setSelectedUser(null);
+    setDetailError("");
+    setDetailLoading(true);
+
+    try {
+      const response = await API.get(`/users/${userId}`);
+      setSelectedUser(response.data);
+    } catch (err) {
+      setDetailError(
+        err.response?.data?.message || "Failed to load user details."
+      );
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const sortIndicator = (key) =>
+    sort.key === key ? (sort.direction === "asc" ? "↑" : "↓") : "↕";
 
   return (
     <div className="users-page">
@@ -120,8 +180,9 @@ function Users() {
 
           <form onSubmit={handleSubmit} className="add-user-form">
             <div className="form-field">
-              <label>Full Name</label>
+              <label htmlFor="user-name">Full Name</label>
               <input
+                id="user-name"
                 type="text"
                 name="name"
                 placeholder="Enter full name (20-60 characters)"
@@ -134,8 +195,9 @@ function Users() {
             </div>
 
             <div className="form-field">
-              <label>Email</label>
+              <label htmlFor="user-email">Email</label>
               <input
+                id="user-email"
                 type="email"
                 name="email"
                 placeholder="Enter email address"
@@ -146,8 +208,9 @@ function Users() {
             </div>
 
             <div className="form-field">
-              <label>Address</label>
+              <label htmlFor="user-address">Address</label>
               <textarea
+                id="user-address"
                 name="address"
                 placeholder="Enter address"
                 maxLength="400"
@@ -158,13 +221,16 @@ function Users() {
             </div>
 
             <div className="form-field">
-              <label>Password</label>
+              <label htmlFor="user-password">Password</label>
               <input
+                id="user-password"
                 type="password"
                 name="password"
                 placeholder="8-16 characters, uppercase + special character"
                 minLength="8"
                 maxLength="16"
+                pattern="^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,16}$"
+                title="Use 8-16 characters with at least one uppercase letter and one special character."
                 value={form.password}
                 onChange={handleChange}
                 required
@@ -172,8 +238,9 @@ function Users() {
             </div>
 
             <div className="form-field">
-              <label>Role</label>
+              <label htmlFor="user-role">Role</label>
               <select
+                id="user-role"
                 name="role"
                 value={form.role}
                 onChange={handleChange}
@@ -198,7 +265,8 @@ function Users() {
 
       <div className="users-toolbar">
         <input
-          type="text"
+          type="search"
+          aria-label="Search users by name, email, or address"
           placeholder="Search by name, email or address..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -214,21 +282,43 @@ function Users() {
 
       <div className="users-table-card">
         {loading ? (
-          <p className="users-message">Loading users...</p>
+          <p className="users-message" role="status">Loading users...</p>
         ) : (
           <table className="users-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Address</th>
-                <th>Role</th>
+                {[
+                  ["name", "Name"],
+                  ["email", "Email"],
+                  ["address", "Address"],
+                  ["role", "Role"],
+                ].map(([key, label]) => (
+                  <th
+                    key={key}
+                    aria-sort={
+                      sort.key === key
+                        ? sort.direction === "asc"
+                          ? "ascending"
+                          : "descending"
+                        : "none"
+                    }
+                  >
+                    <button
+                      type="button"
+                      className="table-sort-button"
+                      onClick={() => handleSort(key)}
+                    >
+                      {label}<span aria-hidden="true">{sortIndicator(key)}</span>
+                    </button>
+                  </th>
+                ))}
+                <th>Details</th>
               </tr>
             </thead>
 
             <tbody>
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
+              {sortedUsers.length > 0 ? (
+                sortedUsers.map((user) => (
                   <tr key={user.id}>
                     <td className="user-name">{user.name}</td>
                     <td>{user.email}</td>
@@ -238,11 +328,20 @@ function Users() {
                         {user.role?.replace("_", " ")}
                       </span>
                     </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="user-details-button"
+                        onClick={() => openUserDetails(user.id)}
+                      >
+                        View details
+                      </button>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" className="users-message">
+                  <td colSpan="5" className="users-message">
                     No users found.
                   </td>
                 </tr>
@@ -251,6 +350,78 @@ function Users() {
           </table>
         )}
       </div>
+
+      {(detailLoading || detailError || selectedUser) && (
+        <div
+          className="user-detail-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setSelectedUser(null);
+              setDetailError("");
+            }
+          }}
+        >
+          <section
+            className="user-detail-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="user-detail-title"
+          >
+            <div className="user-detail-header">
+              <div>
+                <span className="user-detail-eyebrow">ACCOUNT PROFILE</span>
+                <h2 id="user-detail-title">User details</h2>
+              </div>
+              <button
+                type="button"
+                className="user-detail-close"
+                aria-label="Close user details"
+                onClick={() => {
+                  setSelectedUser(null);
+                  setDetailError("");
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {detailLoading && <p className="users-message">Loading user details...</p>}
+            {detailError && <p className="user-error">{detailError}</p>}
+            {selectedUser && (
+              <>
+                <dl className="user-detail-fields">
+                  <div><dt>Name</dt><dd>{selectedUser.user.name}</dd></div>
+                  <div><dt>Email</dt><dd>{selectedUser.user.email}</dd></div>
+                  <div><dt>Address</dt><dd>{selectedUser.user.address || "—"}</dd></div>
+                  <div>
+                    <dt>Role</dt>
+                    <dd>
+                      <span className={`role-badge ${selectedUser.user.role?.toLowerCase()}`}>
+                        {selectedUser.user.role?.replace("_", " ")}
+                      </span>
+                    </dd>
+                  </div>
+                </dl>
+                {selectedUser.user.role === "STORE_OWNER" && (
+                  <div className="user-owner-ratings">
+                    <h3>Store ratings</h3>
+                    {selectedUser.stores.length === 0 ? (
+                      <p>No stores are assigned to this owner yet.</p>
+                    ) : (
+                      selectedUser.stores.map((store) => (
+                        <div className="user-owner-rating" key={store.id}>
+                          <strong>{store.name}</strong>
+                          <span>★ {Number(store.average_rating).toFixed(2)} <small>({store.total_ratings} ratings)</small></span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        </div>
+      )}
     </div>
   );
 }

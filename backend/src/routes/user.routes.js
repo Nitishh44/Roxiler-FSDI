@@ -1,6 +1,7 @@
 const express = require("express");
 const {
     getAllUsers,
+    getUserDetails,
     getDashboardStats,
     createUser
 } = require("../controllers/user.controller");
@@ -24,6 +25,13 @@ router.get(
     verifyToken,
     authorizeRoles("ADMIN"),
     getDashboardStats
+);
+
+router.get(
+    "/:id",
+    verifyToken,
+    authorizeRoles("ADMIN"),
+    getUserDetails
 );
 
 // Admin: Create a new user

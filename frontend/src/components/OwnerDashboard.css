@@ -106,6 +106,30 @@
   white-space: nowrap;
 }
 
+.table-sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  white-space: nowrap;
+}
+
+.table-sort-button span {
+  color: #6258ec;
+  font-size: 13px;
+}
+
+.table-sort-button:hover {
+  color: #5145e5;
+  transform: none;
+}
+
 .table-wrapper td {
   padding: 16px 18px;
   border-top: 1px solid #edf0f5;
@@ -151,5 +175,67 @@
 
   .owner-stat-card h2 {
     font-size: 27px;
+  }
+}
+
+.owner-dashboard {
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+}
+
+.owner-dashboard > h2 {
+  color: #26352a;
+  font-size: 24px;
+  letter-spacing: -0.7px;
+}
+
+.owner-loading,
+.owner-error {
+  padding: 18px;
+  border: 1px solid #e7ece7;
+  border-radius: 12px;
+  color: #647267;
+  background: #fff;
+}
+
+.owner-error {
+  color: #a83c3c;
+  background: #fff8f7;
+}
+
+.owner-stat-card {
+  box-shadow: var(--shadow-card);
+}
+
+.owner-stat-card h3 {
+  color: #2f684b;
+}
+
+.owner-stat-card p {
+  margin-bottom: 9px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.owner-dashboard .content-panel {
+  box-shadow: var(--shadow-card);
+}
+
+.owner-dashboard .content-panel > h3 {
+  margin-bottom: 15px;
+}
+
+.table-wrapper th {
+  background: #f7faf7;
+}
+
+.table-wrapper tbody tr:hover {
+  background: #f8fbf8;
+}
+
+@media (max-width: 600px) {
+  .owner-dashboard {
+    padding: 0;
   }
 }

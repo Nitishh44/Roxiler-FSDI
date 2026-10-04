@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
+import { sortRows } from "../utils/sortRows";
 import "./Stores.css";
 
 function Stores() {
@@ -10,6 +11,9 @@ function Stores() {
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [sort, setSort] = useState({ key: "name", direction: "asc" });
+  const token = localStorage.getItem("token");
 
   const [form, setForm] = useState({
     name: "",
@@ -17,8 +21,6 @@ function Stores() {
     address: "",
     owner_id: "",
   });
-
-  const token = localStorage.getItem("token");
 
   const fetchData = async () => {
     try {
@@ -31,18 +33,48 @@ function Stores() {
         API.get("/users", config),
       ]);
 
+      setError("");
       setStores(storeResponse.data.stores || storeResponse.data);
       const users = userResponse.data.users || userResponse.data;
       setOwners(users.filter((user) => user.role === "STORE_OWNER"));
     } catch (error) {
       console.error("Failed to fetch data:", error);
+      setError(
+        error.response?.data?.message || "Failed to load stores."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    let active = true;
+
+    Promise.all([API.get("/stores"), API.get("/users")])
+      .then(([storeResponse, userResponse]) => {
+        if (active) {
+          setStores(storeResponse.data.stores || storeResponse.data);
+          const users = userResponse.data.users || userResponse.data;
+          setOwners(users.filter((user) => user.role === "STORE_OWNER"));
+          setError("");
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          setError(
+            error.response?.data?.message || "Failed to load stores."
+          );
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleChange = (e) => {
@@ -53,6 +85,7 @@ function Stores() {
     e.preventDefault();
     setSaving(true);
     setMessage("");
+    setError("");
 
     try {
       await API.post(
@@ -71,7 +104,7 @@ function Stores() {
       setShowForm(false);
       await fetchData();
     } catch (error) {
-      setMessage(
+      setError(
         error.response?.data?.message || "Failed to create store."
       );
     } finally {
@@ -85,6 +118,18 @@ function Stores() {
       store.address?.toLowerCase().includes(search.toLowerCase()) ||
       store.email?.toLowerCase().includes(search.toLowerCase())
   );
+  const sortedStores = sortRows(filteredStores, sort.key, sort.direction);
+
+  const handleSort = (key) => {
+    setSort((current) => ({
+      key,
+      direction:
+        current.key === key && current.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  const sortIndicator = (key) =>
+    sort.key === key ? (sort.direction === "asc" ? "↑" : "↓") : "↕";
 
   return (
     <div className="stores-page">
@@ -111,14 +156,16 @@ function Stores() {
         </div>
       </div>
 
-      {message && <p className="store-feedback">{message}</p>}
+      {message && <p className="store-feedback" role="status">{message}</p>}
+      {error && <p className="store-error" role="alert">{error}</p>}
 
       {showForm && (
         <form className="add-store-form" onSubmit={handleSubmit}>
           <h3>Add New Store</h3>
 
-          <label>Store Name</label>
+          <label htmlFor="store-name">Store Name</label>
           <input
+            id="store-name"
             name="name"
             value={form.name}
             onChange={handleChange}
@@ -128,8 +175,9 @@ function Stores() {
             required
           />
 
-          <label>Email Address</label>
+          <label htmlFor="store-email">Email Address</label>
           <input
+            id="store-email"
             name="email"
             type="email"
             value={form.email}
@@ -138,8 +186,9 @@ function Stores() {
             required
           />
 
-          <label>Address</label>
+          <label htmlFor="store-address">Address</label>
           <textarea
+            id="store-address"
             name="address"
             value={form.address}
             onChange={handleChange}
@@ -148,8 +197,9 @@ function Stores() {
             required
           />
 
-          <label>Store Owner</label>
+          <label htmlFor="store-owner">Store Owner</label>
           <select
+            id="store-owner"
             name="owner_id"
             value={form.owner_id}
             onChange={handleChange}
@@ -172,6 +222,7 @@ function Stores() {
       <div className="stores-toolbar">
         <input
           type="text"
+          aria-label="Search stores by name, email, or address"
           placeholder="Search by store name, email or address..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -180,22 +231,43 @@ function Stores() {
 
       <div className="stores-table-card">
         {loading ? (
-          <p className="stores-message">Loading stores...</p>
+          <p className="stores-message" role="status">Loading stores...</p>
         ) : (
           <table className="stores-table">
             <thead>
               <tr>
-                <th>Store Name</th>
-                <th>Email</th>
-                <th>Address</th>
-                <th>Owner</th>
-                <th>Rating</th>
+                {[
+                  ["name", "Store Name"],
+                  ["email", "Email"],
+                  ["address", "Address"],
+                  ["owner_name", "Owner"],
+                  ["average_rating", "Rating"],
+                ].map(([key, label]) => (
+                  <th
+                    key={key}
+                    aria-sort={
+                      sort.key === key
+                        ? sort.direction === "asc"
+                          ? "ascending"
+                          : "descending"
+                        : "none"
+                    }
+                  >
+                    <button
+                      type="button"
+                      className="table-sort-button"
+                      onClick={() => handleSort(key)}
+                    >
+                      {label}<span aria-hidden="true">{sortIndicator(key)}</span>
+                    </button>
+                  </th>
+                ))}
               </tr>
             </thead>
 
             <tbody>
-              {filteredStores.length > 0 ? (
-                filteredStores.map((store) => (
+              {sortedStores.length > 0 ? (
+                sortedStores.map((store) => (
                   <tr key={store.id}>
                     <td className="store-name">{store.name}</td>
                     <td>{store.email || "—"}</td>

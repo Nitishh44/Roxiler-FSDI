@@ -13,6 +13,18 @@ const signup = async (req, res) => {
             });
         }
 
+        if (
+            typeof name !== "string" ||
+            typeof email !== "string" ||
+            typeof address !== "string" ||
+            typeof password !== "string"
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Name, email, address, and password must be text"
+            });
+        }
+
         const cleanName = name.trim();
         const cleanEmail = email.trim().toLowerCase();
         const cleanAddress = address.trim();
@@ -88,7 +100,12 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        if (!email || !password) {
+        if (
+            typeof email !== "string" ||
+            typeof password !== "string" ||
+            !email.trim() ||
+            !password
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "Email and password are required"
@@ -154,7 +171,12 @@ const changePassword = async (req, res) => {
         const { currentPassword, newPassword } = req.body;
         const userId = req.user.id;
 
-        if (!currentPassword || !newPassword) {
+        if (
+            typeof currentPassword !== "string" ||
+            typeof newPassword !== "string" ||
+            !currentPassword ||
+            !newPassword
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "Current and new password are required"

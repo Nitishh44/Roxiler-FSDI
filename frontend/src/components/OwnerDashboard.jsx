@@ -1,11 +1,24 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
+import { sortRows } from "../utils/sortRows";
 import "./OwnerDashboard.css";
 
 function OwnerDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [sort, setSort] = useState({ key: "created_at", direction: "desc" });
+
+  const handleSort = (key) => {
+    setSort((current) => ({
+      key,
+      direction:
+        current.key === key && current.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  const sortIndicator = (key) =>
+    sort.key === key ? (sort.direction === "asc" ? "↑" : "↓") : "↕";
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -32,11 +45,11 @@ function OwnerDashboard() {
   }, []);
 
   if (loading) {
-    return <p>Loading dashboard...</p>;
+    return <p className="owner-loading" role="status">Loading your store insights...</p>;
   }
 
   if (error) {
-    return <div className="content-panel">{error}</div>;
+    return <div className="content-panel owner-error" role="alert">{error}</div>;
   }
 
   if (!data) {
@@ -76,6 +89,7 @@ function OwnerDashboard() {
              : raters.filter(
          (rater) => Number(rater.storeId) === Number(store.id)
         );
+        const sortedRaters = sortRows(storeRaters, sort.key, sort.direction);
 
         return (
           <div className="owner-store-section" key={store.id}>
@@ -108,15 +122,36 @@ function OwnerDashboard() {
                   <table>
                     <thead>
                       <tr>
-                        <th>Customer Name</th>
-                        <th>Email</th>
-                        <th>Rating</th>
-                        <th>Date</th>
+                        {[
+                          ["name", "Customer Name"],
+                          ["email", "Email"],
+                          ["rating", "Rating"],
+                          ["created_at", "Date"],
+                        ].map(([key, label]) => (
+                          <th
+                            key={key}
+                            aria-sort={
+                              sort.key === key
+                                ? sort.direction === "asc"
+                                  ? "ascending"
+                                  : "descending"
+                                : "none"
+                            }
+                          >
+                            <button
+                              type="button"
+                              className="table-sort-button"
+                              onClick={() => handleSort(key)}
+                            >
+                              {label}<span aria-hidden="true">{sortIndicator(key)}</span>
+                            </button>
+                          </th>
+                        ))}
                       </tr>
                     </thead>
 
                     <tbody>
-                      {storeRaters.map((rater, index) => (
+                      {sortedRaters.map((rater, index) => (
                         <tr key={`${store.id}-${index}`}>
                           <td>{rater.name}</td>
                           <td>{rater.email}</td>
