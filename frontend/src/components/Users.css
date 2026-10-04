@@ -1,0 +1,153 @@
+
+.users-page {
+  width: 100%;
+  animation: appear 0.3s ease;
+}
+
+.users-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.users-header h1 {
+  font-size: 21px;
+  color: #202a40;
+  margin-bottom: 7px;
+}
+
+.users-header p {
+  color: #929bad;
+  font-size: 12px;
+}
+
+.users-count {
+  padding: 10px 15px;
+  background: #efedff;
+  color: #574be0;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.users-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.users-toolbar input,
+.users-toolbar select {
+  padding: 13px 15px;
+  border: 1px solid #e5e8f0;
+  border-radius: 9px;
+  background: #fff;
+  color: #374158;
+  font-size: 12px;
+  outline: none;
+}
+
+.users-toolbar input {
+  flex: 1;
+  min-width: 0;
+}
+
+.users-toolbar input:focus,
+.users-toolbar select:focus {
+  border-color: #6258ec;
+  box-shadow: 0 0 0 3px #6258ec15;
+}
+
+.users-table-card {
+  overflow-x: auto;
+  background: #fff;
+  border: 1px solid #edf0f5;
+  border-radius: 14px;
+  box-shadow: 0 5px 20px rgba(38, 49, 82, 0.025);
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.users-table th {
+  padding: 17px 20px;
+  background: #fafbfe;
+  color: #8c95a8;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.users-table td {
+  padding: 17px 20px;
+  color: #657087;
+  font-size: 12px;
+  border-bottom: 1px solid #f0f2f7;
+}
+
+.users-table tbody tr:hover {
+  background: #fafaff;
+}
+
+.users-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.users-table .user-name {
+  color: #29344c;
+  font-weight: 600;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  background: #f0edff;
+  color: #6256dd;
+}
+
+.role-badge.admin {
+  background: #f0edff;
+  color: #6256dd;
+}
+
+.role-badge.user {
+  background: #eaf4ff;
+  color: #3283ca;
+}
+
+.role-badge.store_owner {
+  background: #eaf9f0;
+  color: #24965b;
+}
+
+.users-message {
+  padding: 35px !important;
+  text-align: center;
+  color: #929bad !important;
+}
+
+@media (max-width: 600px) {
+  .users-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .users-toolbar {
+    flex-direction: column;
+  }
+
+  .users-toolbar select {
+    width: 100%;
+  }
+}

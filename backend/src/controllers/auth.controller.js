@@ -1,3 +1,4 @@
+
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const pool = require("../config/db");
@@ -119,7 +120,78 @@ const login = async (req, res) => {
     }
 };
 
+// CHANGE PASSWORD
+const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user.id;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Current and new password are required"
+            });
+        }
+
+        const passwordRegex =
+            /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,16}$/;
+
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be 8-16 characters with at least one uppercase letter and one special character"
+            });
+        }
+
+        const [users] = await pool.execute(
+            "SELECT password FROM users WHERE id = ?",
+            [userId]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const isValid = await bcrypt.compare(
+            currentPassword,
+            users[0].password
+        );
+
+        if (!isValid) {
+            return res.status(401).json({
+                success: false,
+                message: "Current password is incorrect"
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await pool.execute(
+            "UPDATE users SET password = ? WHERE id = ?",
+            [hashedPassword, userId]
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Password changed successfully"
+        });
+
+    } catch (error) {
+        console.error("Change password error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to change password"
+        });
+    }
+};
+
 module.exports = {
     signup,
-    login
+    login,
+    changePassword
 };
+

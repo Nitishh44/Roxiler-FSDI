@@ -136,14 +136,24 @@ const getUserStores = async (req, res) => {
 
 
 // Store Owner Dashboard
+
 const getOwnerDashboard = async (req, res) => {
     try {
         const ownerId = req.user.id;
 
         const [stores] = await pool.query(
-            `SELECT id, name
-             FROM stores
-             WHERE owner_id = ?`,
+            `SELECT
+                s.id,
+                s.name,
+                s.email,
+                s.address,
+                COALESCE(ROUND(AVG(r.rating), 2), 0) AS averageRating,
+                COUNT(r.id) AS totalRatings
+             FROM stores s
+             LEFT JOIN ratings r ON s.id = r.store_id
+             WHERE s.owner_id = ?
+             GROUP BY s.id, s.name, s.email, s.address
+             ORDER BY s.id DESC`,
             [ownerId]
         );
 
@@ -154,35 +164,25 @@ const getOwnerDashboard = async (req, res) => {
             });
         }
 
-        const storeId = stores[0].id;
-
-        const [stats] = await pool.query(
-            `SELECT
-                COUNT(*) AS totalRatings,
-                COALESCE(ROUND(AVG(rating), 2), 0) AS averageRating
-             FROM ratings
-             WHERE store_id = ?`,
-            [storeId]
-        );
-
         const [raters] = await pool.query(
             `SELECT
+                s.id AS storeId,
+                s.name AS storeName,
                 u.name,
                 u.email,
                 r.rating,
                 r.created_at
              FROM ratings r
              JOIN users u ON r.user_id = u.id
-             WHERE r.store_id = ?
+             JOIN stores s ON r.store_id = s.id
+             WHERE s.owner_id = ?
              ORDER BY r.created_at DESC`,
-            [storeId]
+            [ownerId]
         );
 
         res.status(200).json({
             success: true,
-            store: stores[0],
-            totalRatings: stats[0].totalRatings,
-            averageRating: stats[0].averageRating,
+            stores,
             raters
         });
 
