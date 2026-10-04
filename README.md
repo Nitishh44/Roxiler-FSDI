@@ -141,6 +141,45 @@ Open the local URL shown by Vite.
 For deployments where the API is not at `http://localhost:5000/api`, set
 `VITE_API_BASE_URL` to the deployed API's `/api` URL before building.
 
+## Free deployment (Vercel + TiDB Cloud Starter)
+
+This setup hosts the Vite frontend and Express API as two Vercel projects and
+uses TiDB Cloud Starter as a MySQL-compatible database. Free-tier quotas and
+provider terms can change; check the provider dashboards before deploying.
+
+1. Create a TiDB Cloud Starter cluster and copy its connection details. In the
+   cluster SQL editor, run `backend/database/schema.sql` to create the
+   application database and tables.
+2. Import this GitHub repository into Vercel twice:
+   - **API project:** set Root Directory to `backend`. Vercel detects the
+     exported Express app in `backend/index.js`.
+   - **Frontend project:** set Root Directory to `frontend`, Framework Preset
+     to Vite, and Output Directory to `dist`.
+3. Add these environment variables to the API project using the TiDB
+   connection details:
+
+   ```env
+   DB_HOST=<TiDB host>
+   DB_USER=<TiDB user>
+   DB_PASSWORD=<TiDB password>
+   DB_NAME=roxiler_db
+   DB_PORT=4000
+   DB_SSL=true
+   JWT_SECRET=<a long, random secret>
+   ```
+
+   Keep `DB_SSL=true` for TiDB's TLS connection. Set `DB_NAME` to the database
+   created by the schema. Do not add database or JWT credentials to Git.
+4. Deploy the API and copy its Vercel URL. In the frontend project's
+   environment variables, set
+   `VITE_API_BASE_URL=https://<your-api-project>.vercel.app/api`, then deploy
+   or redeploy the frontend.
+5. Confirm the API responds at `https://<your-api-project>.vercel.app/` and
+   load the frontend deployment. Create the first administrator from a
+   trusted environment with the backend's `seed:admin` script and the
+   `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_ADDRESS`, and `ADMIN_PASSWORD`
+   environment variables; never expose these credentials in the frontend.
+
 ## Production Build
 
 ```bash
